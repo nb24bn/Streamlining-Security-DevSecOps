@@ -1,0 +1,59 @@
+name: CI/CD Pipeline
+
+# Trigger the workflow on pushes to the main branch
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  # Define the job to run on the Ubuntu runner
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Checkout code from the repository
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Step 2: Set up Python environment
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+
+      # Step 3: Install dependencies from requirements.txt
+      - name: Install dependencies
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install -r requirements.txt
+
+      # Step 4: Run tests (Optional but recommended)
+      - name: Run tests
+        run: |
+          source venv/bin/activate
+          pytest  # Run your tests here
+
+      # Step 5: Build Docker image
+      - name: Build Docker image
+        run: |
+          docker build -t devsecops-app .
+
+      # Step 6: Log in to Docker Hub (optional)
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Step 7: Push Docker image to Docker Hub
+      - name: Push Docker image
+        run: |
+          docker tag devsecops-app:latest ${{ secrets.DOCKER_USERNAME }}/devsecops-app:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/devsecops-app:latest
+
+      # Step 8: (Optional) Deploy the Docker container
+      - name: Deploy to Production (e.g., using Kubernetes or SSH)
+        run: |
+          # Example for SSH deployment (replace with your deploy script)
+          ssh user@your-server "docker pull ${{ secrets.DOCKER_USERNAME }}/devsecops-app:latest && docker run -d -p 5000:5000 ${{ secrets.DOCKER_USERNAME }}/devsecops-app:latest"
