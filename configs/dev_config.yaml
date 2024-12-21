@@ -1,0 +1,3 @@
+app_name: DevSecOpsApp
+environment: development
+log_level: DEBUG

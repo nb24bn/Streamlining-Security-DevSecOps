@@ -1,0 +1,4 @@
+app_name: DevSecOpsApp
+environment: production
+log_level: INFO
+
